@@ -2,3 +2,4 @@ data/*
 !data/*.sh
 !data/*.py
 *swp
+__pycache__/
