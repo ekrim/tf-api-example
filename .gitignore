@@ -1,2 +1,4 @@
 data/*
-!data/download.sh
+!data/*.sh
+!data/*.py
+*swp
