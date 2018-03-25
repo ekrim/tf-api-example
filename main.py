@@ -21,9 +21,11 @@ def input_fn_gen(is_training=False):
       dataset = tf.data.TFRecordDataset(file_name, buffer_size=8*1024*1024)
       return dataset
 
-    dataset = dataset.apply(
-      tf.contrib.data.parallel_interleave(
-        process_dataset, cycle_length=4, sloppy=True))
+    dataset = dataset.interleave()
+
+    #dataset = dataset.apply(
+    #  tf.contrib.data.parallel_interleave(
+    #  process_dataset, cycle_length=4, sloppy=True))
     
     dataset = dataset.shuffle(1024).prefetch(params["batch_size"])
     return dataset
