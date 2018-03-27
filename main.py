@@ -38,12 +38,11 @@ def input_fn_gen(is_training=False):
       process_dataset, cycle_length=4, sloppy=True))
     
     dataset = dataset.shuffle(1024)
-    dataset = dataset.map(
-      dataset_parser, num_parallel_calls=64)
+    dataset = dataset.map(dataset_parser, num_parallel_calls=64)
     dataset = dataset.prefetch(params["batch_size"])
   
-    next_element = dataset.make_one_shot_iterator().get_next()
-    return next_element
+    image, label = dataset.make_one_shot_iterator().get_next()
+    return image, label 
 
   return input_fn
 
@@ -52,9 +51,9 @@ if __name__=="__main__":
   input_fn = input_fn_gen()
 
   sess = tf.Session()
-  next_element = input_fn({"batch_size":64})
+  image, label = input_fn({"batch_size":64})
 
-  output = sess.run(next_element)
+  output = sess.run(label)
   print(output)
   print(type(output))
   print(output.shape)
