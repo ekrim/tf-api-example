@@ -24,9 +24,9 @@ if __name__=="__main__":
 
   for input_file, output_file in zip(input_files, output_files):
     with open(input_file, "rb") as f:
-      with  tf.python_io.TFRecordWriter(output_file) as record_writer:
+      with tf.python_io.TFRecordWriter(output_file) as record_writer:
         while True:
-          img, label = cifar_reader(f)  
+          img, label = cifar_reader(f)
 
           if img is None:
             break
@@ -34,7 +34,7 @@ if __name__=="__main__":
           example = tf.train.Example(
             features=tf.train.Features(
               feature={
-                "image": tf.train.Feature(bytes_list=tf.train.BytesList(value=[img.tobytes()])),
+                "image": tf.train.Feature(bytes_list=tf.train.BytesList(value=[tf.compat.as_bytes(img.tostring())])),
                 "label": tf.train.Feature(int64_list=tf.train.Int64List(value=[label]))
               }))
 
