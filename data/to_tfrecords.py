@@ -34,7 +34,7 @@ if __name__=="__main__":
           example = tf.train.Example(
             features=tf.train.Features(
               feature={
-                "image": tf.train.Feature(bytes_list=tf.train.BytesList(value=[tf.compat.as_bytes(img.tostring())])),
+                "image": tf.train.Feature(bytes_list=tf.train.BytesList(value=[img.tobytes()])),
                 "label": tf.train.Feature(int64_list=tf.train.Int64List(value=[label]))
               }))
 

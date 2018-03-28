@@ -6,20 +6,31 @@ import os
 import glob
 
 import numpy as np
+import matplotlib.pyplot as plt
 import tensorflow as tf
+
+
+HEIGHT = 32
+WIDTH = 32
+DEPTH = 3
 
 
 def dataset_parser(value):
   keys_to_features = {
     'image': tf.FixedLenFeature((), tf.string, ''),
     'label': tf.FixedLenFeature((), tf.int64, -1)}
-  parsed = tf.parse_single_example(value, keys_to_features)
+  parsed = tf.parse_single_example(value, features=keys_to_features)
+  image = tf.decode_raw(parsed['image'], tf.uint8)
+  image.set_shape([HEIGHT*WIDTH*DEPTH])
   
-  image = tf.image.decode_image(tf.reshape(parsed['image'], shape=[]), 3)
-  image = tf.image.convert_image_dtype(image, dtype=tf.float32)
+  image = tf.cast(
+    tf.transpose(tf.reshape(image, [DEPTH, HEIGHT, WIDTH]), [1,2,0]),
+    tf.float32)
   
-  label = tf.cast(tf.reshape(parsed['label'], shape=[]), dtype=tf.int32) - 1
+  label = tf.cast(parsed['label'], tf.int32)
+  
   return image, label
+
   
 def input_fn_gen(is_training=False):
   def input_fn(params):
@@ -27,7 +38,7 @@ def input_fn_gen(is_training=False):
     dataset = tf.data.Dataset.list_files(file_list)
   
     if is_training:
-      dataset = dataset.shuffle(1024).repeat()
+      dataset = dataset.shuffle(buffer_size=min(len(file_list), 1024)).repeat()
     
     def process_dataset(file_name):
       dataset = tf.data.TFRecordDataset(file_name, buffer_size=8*1024*1024)
@@ -37,8 +48,11 @@ def input_fn_gen(is_training=False):
       tf.contrib.data.parallel_interleave(
       process_dataset, cycle_length=4, sloppy=True))
     
-    dataset = dataset.shuffle(1024)
+    if is_training:
+      dataset = dataset.shuffle(1024)
+
     dataset = dataset.map(dataset_parser, num_parallel_calls=64)
+    dataset = dataset.apply(tf.contrib.data.batch_and_drop_remainder(params["batch_size"]))
     dataset = dataset.prefetch(params["batch_size"])
   
     image, label = dataset.make_one_shot_iterator().get_next()
@@ -53,7 +67,11 @@ if __name__=="__main__":
   sess = tf.Session()
   image, label = input_fn({"batch_size":64})
 
-  output = sess.run(label)
-  print(output)
-  print(type(output))
-  print(output.shape)
+  for i in range(10):
+    output = sess.run(label)
+    print(output.shape)
+
+    output = sess.run(image)
+    print(print(output.shape))
+  
+
