@@ -37,7 +37,7 @@ def input_fn_gen(mode="test"):
     file_list = glob.glob("data/*.tfrecords")
     dataset = tf.data.Dataset.list_files(file_list)
   
-    if is_training:
+    if mode=="train":
       dataset = dataset.shuffle(buffer_size=min(len(file_list), 1024)).repeat()
     
     def process_dataset(file_name):
@@ -48,7 +48,7 @@ def input_fn_gen(mode="test"):
       tf.contrib.data.parallel_interleave(
       process_dataset, cycle_length=4, sloppy=True))
     
-    if is_training:
+    if mode=="train":
       dataset = dataset.shuffle(1024)
 
     dataset = dataset.map(dataset_parser, num_parallel_calls=64)
