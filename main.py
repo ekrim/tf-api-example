@@ -9,6 +9,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
+from keras.layers import Input, Conv2D, Dense, Flatten
+
 import data_pipeline
 
 def model_fn(features, labels, mode, params):
@@ -19,12 +21,25 @@ param_dict = {
   'feature_columns':
   'n_classes':
   
+def build_model():
 
-classifier = tf.estimator.Estimator(
-  model_fn=model_fn,
-  params={
-    'feature_columns':
-    'n_class
+  inp = x = Input(shape=(32,32,3))
+  x = Conv2D(
+
+  model.compile(
+    optimizer=tf.keras.optimizers.SGD(lr=0.0001, momentum=0.9),
+    loss='categorical_crossentropy',
+    metric='accuracy')
+
+  est = tf.keras.estimator.model_to_estimator(keras_model=model)
+
+  classifier = tf.estimator.Estimator(
+    model_fn=model_fn,
+    params={
+      'feature_columns'
+      'n_class'}
+
+  return model
 
 if __name__=="__main__":
   input_fn = data_pipeline.input_fn_gen()
