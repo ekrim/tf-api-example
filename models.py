@@ -8,11 +8,11 @@ import glob
 import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
-
+ 
 
 def model_fn(features, labels, mode, params):
   conv1 = tf.layers.conv2d(
-    inputs=features['image']
+    inputs=features['image'],
     filters=10,
     kernel_size=[3,3],
     padding="valid",
@@ -21,7 +21,7 @@ def model_fn(features, labels, mode, params):
   pool1 = tf.layers.average_pooling2d(
     inputs=conv1,
     pool_size=[3,3],
-    strides=1)
+    strides=3)
 
   flat1 = tf.reshape(pool1, [-1, 10*10*10])
   
@@ -30,7 +30,7 @@ def model_fn(features, labels, mode, params):
     units=10)
   
   predictions = {
-    "classes": tf.argmax(input=logits, axis=1)
+    "classes": tf.argmax(input=logits, axis=1),
     "probabilities": tf.nn.softmax(logits, name="softmax_tensor")}
 
   if mode == tf.estimator.ModeKeys.PREDICT:
@@ -46,7 +46,7 @@ def model_fn(features, labels, mode, params):
     return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op)
 
   eval_metric_ops = {
-    "accuracy": tf.metrics.accuracy(labels=labels, predictions=predictions["classes"]}
+    "accuracy": tf.metrics.accuracy(labels=labels, predictions=predictions["classes"])}
 
   return tf.estimator.EstimatorSpec(
     mode=mode,
@@ -55,6 +55,8 @@ def model_fn(features, labels, mode, params):
   
 
 if __name__=="__main__":
-  classifier = tf.estimator.Estimator(
-    model_fn=model_fn,
-    model_dir="/tmp/example_model") 
+  features = {
+    "image": tf.placeholder(tf.float32, (None, 32, 32, 3))}
+  labels = tf.placeholder(tf.int32, (None, 1))
+
+  model_fn(features, labels, tf.estimator.ModeKeys.TRAIN, {})

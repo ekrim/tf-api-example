@@ -32,8 +32,9 @@ def dataset_parser(value):
   return image, label
 
   
-def input_fn_gen(mode="test"):
-  def input_fn(params):
+def input_fn_gen(mode="test", batch_size=64):
+
+  def input_fn():
     file_list = glob.glob("data/*.tfrecords")
     dataset = tf.data.Dataset.list_files(file_list)
   
@@ -52,11 +53,11 @@ def input_fn_gen(mode="test"):
       dataset = dataset.shuffle(1024)
 
     dataset = dataset.map(dataset_parser, num_parallel_calls=64)
-    dataset = dataset.apply(tf.contrib.data.batch_and_drop_remainder(params["batch_size"]))
-    dataset = dataset.prefetch(params["batch_size"])
+    dataset = dataset.apply(tf.contrib.data.batch_and_drop_remainder(batch_size))
+    dataset = dataset.prefetch(batch_size)
   
     image, label = dataset.make_one_shot_iterator().get_next()
-    return image, label 
+    return {'image': image}, label 
 
   return input_fn
 
@@ -65,13 +66,11 @@ if __name__=="__main__":
   input_fn = input_fn_gen()
 
   sess = tf.Session()
-  image, label = input_fn({"batch_size":64})
+  image, label = input_fn()
 
   for i in range(10):
-    output = sess.run(label)
-    print(output.shape)
-
-    output = sess.run(image)
-    print(print(output.shape))
-  
+    images = sess.run(image['image'])
+    print(images.shape)
+    labels = sess.run(label)
+    print(labels.shape)
 
