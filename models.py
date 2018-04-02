@@ -44,8 +44,8 @@ def model_fn(features, labels, mode, params):
       global_step=tf.train.get_global_step())
     return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op)
 
-  eval_metric_ops = {
-    "accuracy": tf.metrics.accuracy(labels=labels, predictions=predictions["classes"])}
+  accuracy = tf.metrics.accuracy(labels=labels, predictions=predictions["classes"])
+  eval_metric_ops = {"accuracy": accuracy}
 
   return tf.estimator.EstimatorSpec(
     mode=mode,
