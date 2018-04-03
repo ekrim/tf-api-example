@@ -24,7 +24,14 @@ if __name__=="__main__":
       model_fn=models.model_fn)
       #model_dir="/tmp/example_model") 
       
-    train_spec = tf.estimator.TrainSpec(input_fn=train_input_fn, max_steps=100)
+    tensors_to_log = {'probabilities': 'softmax_tensor'}
+    logging_hook = tf.train.LoggingTensorHook(
+      tensors=tensors_to_log, every_n_iter=500)
+
+    train_spec = tf.estimator.TrainSpec(
+      input_fn=train_input_fn, 
+      max_steps=14000,
+      hooks=[logging_hook])
     eval_spec = tf.estimator.EvalSpec(input_fn=eval_input_fn)
 
     tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)

@@ -66,6 +66,7 @@ class Cifar10Input:
       if mode == 'train':
         image = self.preprocess_fn(image)
       
+      image = tf.image.per_image_standardization(image)
       label = tf.cast(parsed['label'], tf.int32)
       return image, label
 
