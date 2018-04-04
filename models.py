@@ -9,7 +9,7 @@ import numpy as np
 import tensorflow as tf
  
 
-def model_test(features):
+def model_test(features, mode):
   '''A simple model, should get about 65% accuracy on CIFAR-10
   '''
   conv1 = tf.layers.conv2d(
@@ -46,12 +46,11 @@ def model_test(features):
   return logits 
 
 
-def model_all_cnn_c(features):
+def model_all_cnn_c(features, mode):
   '''The all convolutional net ALL-CNN-C
   https://arxiv.org/abs/1412.6806
   '''
-  use_dropout = tf.placeholder(tf.bool, ())
-  tf.add_to_collection("dropout_flag", use_dropout)
+  use_dropout = mode == tf.estimator.ModeKeys.TRAIN
 
   drop1 = tf.layers.dropout(features['image'], rate=0.2, training=use_dropout)
 
@@ -128,36 +127,46 @@ def model_all_cnn_c(features):
   return logits
   
 
-def model_fn(features, labels, mode, params):
-  '''Model function for estimators
+def model_fn_closure(model_name='test'):
+  '''model_name is one of "test" or "all_cnn"
   '''
+  if model_name == 'test':
+    inference_fn = model_test
+  elif model_name == 'all_cnn':
+    inference_fn = model_all_cnn_c  
+  else:
+    assert False, 'model not implemented'
 
-  logits = model_all_cnn_c(features)
-
-  predictions = {
-    "classes": tf.argmax(input=logits, axis=1),
-    "probabilities": tf.nn.softmax(logits, name="softmax_tensor")}
-
-  if mode == tf.estimator.ModeKeys.PREDICT:
-    return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions) 
-   
-  loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=logits)
+  def model_fn(features, labels, mode, params):
+    '''Model function for estimators
+    '''
+    logits = inference_fn(features, mode)
   
-  if mode == tf.estimator.ModeKeys.TRAIN:
-    optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
-    train_op = optimizer.minimize(
-      loss=loss,
-      global_step=tf.train.get_global_step())
-    return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op)
-
-  accuracy = tf.metrics.accuracy(labels=labels, predictions=predictions["classes"])
-  eval_metric_ops = {"accuracy": accuracy}
-
-  return tf.estimator.EstimatorSpec(
-    mode=mode,
-    loss=loss, 
-    eval_metric_ops=eval_metric_ops)
+    predictions = {
+      "classes": tf.argmax(input=logits, axis=1),
+      "probabilities": tf.nn.softmax(logits, name="softmax_tensor")}
   
+    if mode == tf.estimator.ModeKeys.PREDICT:
+      return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions) 
+     
+    loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=logits)
+    
+    if mode == tf.estimator.ModeKeys.TRAIN:
+      optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
+      train_op = optimizer.minimize(
+        loss=loss,
+        global_step=tf.train.get_global_step())
+      return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op)
+  
+    accuracy = tf.metrics.accuracy(labels=labels, predictions=predictions["classes"])
+    eval_metric_ops = {"accuracy": accuracy}
+  
+    return tf.estimator.EstimatorSpec(
+      mode=mode,
+      loss=loss, 
+      eval_metric_ops=eval_metric_ops)
+
+  return model_fn
 
 
 if __name__=="__main__":
@@ -165,4 +174,4 @@ if __name__=="__main__":
     "image": tf.placeholder(tf.float32, (None, 32, 32, 3))}
   labels = tf.placeholder(tf.int32, (None, 1))
 
-  model_fn(features, labels, tf.estimator.ModeKeys.TRAIN, {})
+  model_fn_closure('test')(features, labels, tf.estimator.ModeKeys.TRAIN, {})
