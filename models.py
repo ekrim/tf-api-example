@@ -9,10 +9,12 @@ import numpy as np
 import tensorflow as tf
  
 
-def model_fn(features, labels, mode, params):
+def model_test(features):
+  '''A simple model, should get about 65% accuracy on CIFAR-10
+  '''
   conv1 = tf.layers.conv2d(
     inputs=features['image'],
-    filters=16,
+    filters=96,
     kernel_size=[3,3],
     padding="valid",
     activation=tf.nn.relu)
@@ -40,7 +42,98 @@ def model_fn(features, labels, mode, params):
     x = tf.layers.dense(inputs=x, units=144)
   
   logits = tf.layers.dense(inputs=x, units=10)
+
+  return logits 
+
+
+def model_all_cnn_c(features):
+  '''The all convolutional net ALL-CNN-C
+  https://arxiv.org/abs/1412.6806
+  '''
+  use_dropout = tf.placeholder(tf.bool, ())
+  tf.add_to_collection("dropout_flag", use_dropout)
+
+  drop1 = tf.layers.dropout(features['image'], rate=0.2, training=use_dropout)
+
+  conv1 = tf.layers.conv2d(
+    inputs=drop1,
+    filters=96,
+    kernel_size=[3,3],
+    padding="valid",
+    activation=tf.nn.relu)
   
+  conv2 = tf.layers.conv2d(
+    inputs=conv1,
+    filters=96,
+    kernel_size=[3,3],
+    padding="valid",
+    activation=tf.nn.relu)
+
+  conv3 = tf.layers.conv2d(
+    inputs=conv2,
+    filters=96,
+    kernel_size=[3,3],
+    padding="valid",
+    strides=(2,2),
+    activation=tf.nn.relu)
+
+  drop2 = tf.layers.dropout(conv3, rate=0.5, training=use_dropout)
+
+  conv4 = tf.layers.conv2d(
+    inputs=drop2,
+    filters=192,
+    kernel_size=[3,3],
+    padding="valid",
+    activation=tf.nn.relu)
+
+  conv5 = tf.layers.conv2d(
+    inputs=conv4,
+    filters=192,
+    kernel_size=[3,3],
+    padding="valid",
+    activation=tf.nn.relu)
+
+  conv6 = tf.layers.conv2d(
+    inputs=conv5,
+    filters=192,
+    kernel_size=[3,3],
+    padding="valid",
+    strides=(2,2),
+    activation=tf.nn.relu)
+
+  drop3 = tf.layers.dropout(conv6, rate=0.5, training=use_dropout)
+
+  conv7 = tf.layers.conv2d(
+    inputs=drop3,
+    filters=192,
+    kernel_size=[3,3],
+    padding="valid",
+    activation=tf.nn.relu)
+
+  conv8 = tf.layers.conv2d(
+    inputs=conv7,
+    filters=192,
+    kernel_size=[1,1],
+    padding="valid",
+    activation=tf.nn.relu)
+
+  conv9 = tf.layers.conv2d(
+    inputs=conv8,
+    filters=10,
+    kernel_size=[1,1],
+    padding="valid",
+    activation=tf.nn.relu)
+
+  logits = tf.reduce_mean(conv9, [1,2])  
+  return logits
+  
+
+def model_fn(features, labels, mode, params):
+  '''Model function for estimators
+  '''
+
+  logits = model_all_cnn_c(features)
+
   predictions = {
     "classes": tf.argmax(input=logits, axis=1),
     "probabilities": tf.nn.softmax(logits, name="softmax_tensor")}
@@ -65,6 +158,7 @@ def model_fn(features, labels, mode, params):
     loss=loss, 
     eval_metric_ops=eval_metric_ops)
   
+
 
 if __name__=="__main__":
   features = {

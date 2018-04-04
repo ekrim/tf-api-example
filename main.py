@@ -30,7 +30,7 @@ if __name__=="__main__":
 
     train_spec = tf.estimator.TrainSpec(
       input_fn=train_input_fn, 
-      max_steps=14000,
+      max_steps=1000,
       hooks=[logging_hook])
     eval_spec = tf.estimator.EvalSpec(input_fn=eval_input_fn)
 
