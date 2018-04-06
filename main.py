@@ -29,12 +29,8 @@ if __name__=="__main__":
   with tf.Session() as sess:
   
     classifier = tf.estimator.Estimator(
-      model_fn=models.model_fn_closure(model_name))
-      #model_dir="/tmp/example_model") 
-      
-    tensors_to_log = {'probabilities': 'softmax_tensor'}
-    #logging_hook = tf.train.LoggingTensorHook(
-    #  tensors=tensors_to_log, every_n_iter=500)
+      model_fn=models.model_fn_closure(model_name),
+      model_dir='./tensorboard') 
 
     train_spec = tf.estimator.TrainSpec(
       input_fn=train_input_fn, 
