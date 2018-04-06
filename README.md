@@ -1,0 +1,1 @@
+In this repo, I train a model on CIFAR-10 using TensorFlow's current high-level APIs. Use this as a basic reference for converting binary data to TFRecords, using multithreaded dataset readers, building estimators for train/eval/predict, and creating logging hooks.
