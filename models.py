@@ -50,6 +50,7 @@ def model_all_cnn_c(features, mode):
   '''The all convolutional net ALL-CNN-C
   https://arxiv.org/abs/1412.6806
   '''
+  tf.summary.image('images', features['image'], max_outputs=1)
   use_dropout = mode == tf.estimator.ModeKeys.TRAIN
 
   drop1 = tf.layers.dropout(features['image'], rate=0.2, training=use_dropout)
