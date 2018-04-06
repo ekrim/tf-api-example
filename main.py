@@ -20,7 +20,7 @@ if __name__=="__main__":
 
   model_name = 'test'  
   batch_size = 256
-  n_steps = 1000
+  n_steps = 100 
 
   cifar = data_pipeline.Cifar10Input()
   train_input_fn = cifar.input_fn_factory(mode='train', batch_size=batch_size)

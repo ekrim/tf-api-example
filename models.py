@@ -12,6 +12,8 @@ import tensorflow as tf
 def model_test(features, mode):
   '''A simple model, should get about 65% accuracy on CIFAR-10
   '''
+  tf.summary.image('images', features['image'], max_outputs=3)
+
   conv1 = tf.layers.conv2d(
     inputs=features['image'],
     filters=96,
@@ -51,6 +53,7 @@ def model_all_cnn_c(features, mode):
   https://arxiv.org/abs/1412.6806
   '''
   tf.summary.image('images', features['image'], max_outputs=1)
+
   use_dropout = mode == tf.estimator.ModeKeys.TRAIN
 
   drop1 = tf.layers.dropout(features['image'], rate=0.2, training=use_dropout)
@@ -154,10 +157,20 @@ def model_fn_closure(model_name='test'):
     
     if mode == tf.estimator.ModeKeys.TRAIN:
       optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
+
       train_op = optimizer.minimize(
         loss=loss,
         global_step=tf.train.get_global_step())
-      return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op)
+
+      training_hooks = [tf.train.SummarySaverHook(
+        save_steps=50,
+        summary_op=tf.summary.merge_all())]        
+
+      return tf.estimator.EstimatorSpec(
+        mode=mode, 
+        loss=loss, 
+        train_op=train_op,
+        training_hooks=training_hooks)
   
     accuracy = tf.metrics.accuracy(labels=labels, predictions=predictions["classes"])
     eval_metric_ops = {"accuracy": accuracy}
