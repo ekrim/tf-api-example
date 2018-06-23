@@ -8,10 +8,13 @@ import glob
 import numpy as np
 import tensorflow as tf
 
+import download_and_make_tfrecords as dl
+
 
 class Cifar10Input:
-
   def __init__(self):
+    dl.maybe_download_cifar()
+
     self.HEIGHT = 32
     self.WIDTH = 32
     self.DEPTH = 3

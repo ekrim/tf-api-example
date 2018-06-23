@@ -1,6 +1,4 @@
-data/*
-!data/*.sh
-!data/*.py
+data/
 tensorboard/
 *swp
 __pycache__/
